@@ -15,16 +15,16 @@ const COLORS = {
         filterLabel: 'text-purple-700/70', dingBg: 'bg-orange-100 text-orange-800 border-orange-300',
         noteBg: 'bg-purple-50 text-purple-800 border-purple-200', chordScheme: 'purple',
     },
-    slate: {
-        bg: 'bg-slate-50/40', border: 'border-slate-200', label: 'text-slate-700',
-        selectBorder: 'border-slate-300', selectText: 'text-slate-900', selectRing: 'focus:ring-slate-400/20',
-        filterBorder: 'border-slate-200', filterText: 'text-slate-600', filterRing: 'focus:ring-slate-400',
-        filterLabel: 'text-slate-500', dingBg: 'bg-amber-100 text-amber-800 border-amber-300',
-        noteBg: 'bg-slate-100 text-slate-700 border-slate-200', chordScheme: 'teal',
+    orange: {
+        bg: 'bg-orange-50/40', border: 'border-orange-200', label: 'text-orange-800',
+        selectBorder: 'border-orange-300', selectText: 'text-orange-900', selectRing: 'focus:ring-orange-500/20',
+        filterBorder: 'border-orange-200', filterText: 'text-orange-700', filterRing: 'focus:ring-orange-400',
+        filterLabel: 'text-orange-700/70', dingBg: 'bg-amber-100 text-amber-800 border-amber-300',
+        noteBg: 'bg-orange-50 text-orange-800 border-orange-200', chordScheme: 'orange',
     },
 };
 
-const SCHEME_ORDER = ['teal', 'purple', 'slate'];
+const SCHEME_ORDER = ['teal', 'purple', 'orange'];
 
 /**
  * ScaleSlot — Egy teljes skálaválasztó egység:

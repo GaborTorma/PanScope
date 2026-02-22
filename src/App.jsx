@@ -15,7 +15,7 @@ const MAX_SCALES = 3;
 const SPLIT_LABEL_STYLES = [
   'text-teal-700 bg-teal-50 border-teal-200',
   'text-purple-700 bg-purple-50 border-purple-200',
-  'text-slate-700 bg-slate-100 border-slate-300',
+  'text-orange-700 bg-orange-50 border-orange-200',
 ];
 
 export default function App() {
@@ -83,7 +83,7 @@ export default function App() {
             ))}
           </div>
 
-          {primaryScale && <Legend hasCompare={hasCompare} />}
+          {hasCompare && <Legend scaleCount={activeScales.length} />}
         </div>
 
         {/* --- Zongora --- */}
