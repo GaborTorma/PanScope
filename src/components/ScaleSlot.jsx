@@ -12,26 +12,26 @@ const COLORS = {
         bg: 'bg-purple-50/40', border: 'border-purple-100', label: 'text-purple-800',
         selectBorder: 'border-purple-300', selectText: 'text-purple-900', selectRing: 'focus:ring-purple-500/20',
         filterBorder: 'border-purple-200', filterText: 'text-purple-700', filterRing: 'focus:ring-purple-400',
-        filterLabel: 'text-purple-700/70', dingBg: 'bg-orange-100 text-orange-800 border-orange-300',
+        filterLabel: 'text-purple-700/70', dingBg: 'bg-amber-100 text-amber-800 border-amber-300',
         noteBg: 'bg-purple-50 text-purple-800 border-purple-200', chordScheme: 'purple',
     },
-    orange: {
-        bg: 'bg-orange-50/40', border: 'border-orange-200', label: 'text-orange-800',
-        selectBorder: 'border-orange-300', selectText: 'text-orange-900', selectRing: 'focus:ring-orange-500/20',
-        filterBorder: 'border-orange-200', filterText: 'text-orange-700', filterRing: 'focus:ring-orange-400',
-        filterLabel: 'text-orange-700/70', dingBg: 'bg-amber-100 text-amber-800 border-amber-300',
-        noteBg: 'bg-orange-50 text-orange-800 border-orange-200', chordScheme: 'orange',
+    rose: {
+        bg: 'bg-rose-50/40', border: 'border-rose-200', label: 'text-rose-800',
+        selectBorder: 'border-rose-300', selectText: 'text-rose-900', selectRing: 'focus:ring-rose-500/20',
+        filterBorder: 'border-rose-200', filterText: 'text-rose-700', filterRing: 'focus:ring-rose-400',
+        filterLabel: 'text-rose-700/70', dingBg: 'bg-amber-100 text-amber-800 border-amber-300',
+        noteBg: 'bg-rose-50 text-rose-800 border-rose-200', chordScheme: 'rose',
     },
 };
 
-const SCHEME_ORDER = ['teal', 'purple', 'orange'];
+const SCHEME_ORDER = ['teal', 'purple', 'rose'];
 
 /**
  * ScaleSlot — Egy teljes skálaválasztó egység:
  * szűrők (felül) → dropdown → skála infó + akkordok (alul)
  */
 export default function ScaleSlot({ slot, index, totalCount, onFilterChange, onScaleChange, onRemove, onClearFilters, playChord }) {
-    const schemeKey = SCHEME_ORDER[index] || 'slate';
+    const schemeKey = SCHEME_ORDER[index] || 'rose';
     const c = COLORS[schemeKey];
     const scale = slot.selectedScale;
     const label = index === 0 ? '1. Skála (Fő)' : `${index + 1}. Skála`;

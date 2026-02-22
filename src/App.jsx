@@ -4,8 +4,6 @@ import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { calculatePianoRange } from './utils/pianoRange';
 
 import Header from './components/Header';
-import Legend from './components/Legend';
-import FrequencyToggle from './components/FrequencyToggle';
 import PianoKeyboard from './components/PianoKeyboard';
 import AiChat from './components/AiChat';
 import ScaleSlot from './components/ScaleSlot';
@@ -15,10 +13,9 @@ const MAX_SCALES = 3;
 const SPLIT_LABEL_STYLES = [
   'text-teal-700 bg-teal-50 border-teal-200',
   'text-purple-700 bg-purple-50 border-purple-200',
-  'text-orange-700 bg-orange-50 border-orange-200',
+  'text-rose-700 bg-rose-50 border-rose-200',
 ];
 
-// Split nézetben melyik viewMode tartozik az i-edik skálához
 const SPLIT_VIEW_MODES = ['primary', 'secondary', 'tertiary'];
 
 export default function App() {
@@ -32,15 +29,12 @@ export default function App() {
 
   const pianoRange = useMemo(() => calculatePianoRange(activeScales, 2), [activeScales]);
 
-  const hasCompare = activeScales.length >= 2;
-  // 1 skálánál nincs split, 2–3-nál user választ
   const effectiveSplitView = activeScales.length <= 1 ? false : splitView;
 
-  const primaryScale   = activeScales[0] || null;
-  const compareScale   = activeScales[1] || null;
-  const tertiaryScale  = activeScales[2] || null;
+  const primaryScale  = activeScales[0] || null;
+  const compareScale  = activeScales[1] || null;
+  const tertiaryScale = activeScales[2] || null;
 
-  // Grid oszlopszám az aktív slotok számától függ
   const gridCols = slots.length === 1
     ? 'grid-cols-1'
     : slots.length === 2
@@ -51,64 +45,64 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8 font-sans pb-24">
       <div className="max-w-7xl mx-auto space-y-6">
 
-        {/* Header */}
         <Header />
 
         {/* --- Skála slotok --- */}
-        <div className="space-y-6">
-          <div className={`grid ${gridCols} gap-4`}>
-            {slots.map((slot, index) => (
-              <ScaleSlot
-                key={slot.id}
-                slot={slot}
-                index={index}
-                totalCount={slots.length}
-                onFilterChange={updateSlotFilter}
-                onScaleChange={updateSlotScale}
-                onRemove={removeSlot}
-                onClearFilters={clearSlotFilters}
-                playChord={playChord}
-              />
-            ))}
-          </div>
-
-          {hasCompare && <Legend scaleCount={activeScales.length} />}
+        <div className={`grid ${gridCols} gap-4`}>
+          {slots.map((slot, index) => (
+            <ScaleSlot
+              key={slot.id}
+              slot={slot}
+              index={index}
+              totalCount={slots.length}
+              onFilterChange={updateSlotFilter}
+              onScaleChange={updateSlotScale}
+              onRemove={removeSlot}
+              onClearFilters={clearSlotFilters}
+              playChord={playChord}
+            />
+          ))}
         </div>
 
         {/* --- Zongora --- */}
         {primaryScale && (
           <div className="bg-white py-8 rounded-2xl shadow-lg border border-slate-200 overflow-hidden relative">
-            <p className="absolute top-2 left-4 text-[10px] text-slate-400 font-medium">
-              * A billentyűkön látható számok a {baseFrequency} Hz-es A4 alaphanghoz viszonyított frekvenciák.
-            </p>
 
-            {/* 432 / 440 Hz — jobb felső sarok */}
-            <div className="absolute top-2 right-4 bg-slate-100 p-1 rounded-lg inline-flex shadow-inner">
-              <button
-                className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${baseFrequency === 432 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-                onClick={() => setBaseFrequency(432)}
-              >432 Hz</button>
-              <button
-                className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${baseFrequency === 440 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-                onClick={() => setBaseFrequency(440)}
-              >440 Hz</button>
+            {/* Frekvencia + nézetváltó — jobb felső sarok */}
+            <div className="absolute top-2 right-4 flex items-center gap-2">
+              <div className="bg-slate-100 p-1 rounded-lg inline-flex shadow-inner">
+                <button
+                  className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${baseFrequency === 432 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                  onClick={() => setBaseFrequency(432)}
+                >432 Hz</button>
+                <button
+                  className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${baseFrequency === 440 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                  onClick={() => setBaseFrequency(440)}
+                >440 Hz</button>
+              </div>
+
+              {activeScales.length >= 2 && (
+                <div className="bg-slate-100 p-1 rounded-lg inline-flex shadow-inner">
+                  <button
+                    className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${!effectiveSplitView ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                    onClick={() => setSplitView(false)}
+                  >Egyesített</button>
+                  <button
+                    className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${effectiveSplitView ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                    onClick={() => setSplitView(true)}
+                  >Osztott</button>
+                </div>
+              )}
             </div>
 
-            <FrequencyToggle
-              activeCount={activeScales.length}
-              splitView={effectiveSplitView}
-              setSplitView={setSplitView}
-            />
-
-            <div className="w-full overflow-x-auto pb-4 pt-2 custom-scrollbar">
+            <div className="w-full overflow-x-auto pb-4 pt-10 custom-scrollbar">
               {effectiveSplitView ? (
                 <div className="flex flex-col gap-6 min-w-max px-8 pt-4 pb-2 items-start sm:items-center">
                   {activeScales.map((scale, i) => {
-                    // Minden skálának a saját viewMode-ja és a skála a megfelelő prop-ban
                     const vm = SPLIT_VIEW_MODES[i] || 'primary';
-                    const selScale   = i === 0 ? scale : null;
-                    const cmpScale   = i === 1 ? scale : null;
-                    const tertScale  = i === 2 ? scale : null;
+                    const selScale  = i === 0 ? scale : null;
+                    const cmpScale  = i === 1 ? scale : null;
+                    const tertScale = i === 2 ? scale : null;
                     return (
                       <div key={`piano-${i}`} className="w-full flex flex-col items-center gap-3">
                         <h4 className={`text-sm font-bold px-4 py-1.5 rounded-full border shadow-sm ${SPLIT_LABEL_STYLES[i] || SPLIT_LABEL_STYLES[2]}`}>
@@ -151,7 +145,6 @@ export default function App() {
         )}
       </div>
 
-      {/* Floating "+" gomb — jobb alsó sarok, fix pozíció */}
       {slots.length < MAX_SCALES && (
         <button
           onClick={addSlot}
@@ -161,7 +154,6 @@ export default function App() {
         >+</button>
       )}
 
-      {/* AI Chat */}
       <AiChat selectedScale={primaryScale} compareScale={compareScale} />
     </div>
   );

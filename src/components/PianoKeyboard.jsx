@@ -102,27 +102,27 @@ function resolveKeyDisplay(match, viewMode, defaultName, isBlack = false) {
     const tone1W = 'bg-teal-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
     const tone1B = 'bg-teal-500';
 
-    // Skála 2 — lila
-    const ding2W = 'bg-orange-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const ding2B = 'bg-orange-500';
+    // Skála 2 — lila (ding amber, mint mindegyiknél)
+    const ding2W = 'bg-amber-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const ding2B = 'bg-amber-500';
     const tone2W = 'bg-purple-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
     const tone2B = 'bg-purple-500';
 
-    // Skála 3 — narancs
-    const tone3W = 'bg-orange-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const tone3B = 'bg-orange-400';
+    // Skála 3 — rózsa
+    const tone3W = 'bg-rose-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const tone3B = 'bg-rose-400';
 
-    // Közös hangok (merged nézet) — a két érintett skála színéből keverve
+    // Közös hangok (merged nézet) — türkiz/lila/rózsa szépen folynak egymásba
     const both12W = 'bg-gradient-to-r from-teal-200 to-purple-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
     const both12B = 'bg-gradient-to-r from-teal-400 to-purple-500';
-    const both13W = 'bg-gradient-to-r from-teal-200 to-orange-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const both13B = 'bg-gradient-to-r from-teal-400 to-orange-400';
-    const both23W = 'bg-gradient-to-r from-purple-300 to-orange-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const both23B = 'bg-gradient-to-r from-purple-500 to-orange-400';
-    const all3W   = 'bg-gradient-to-r from-teal-200 via-purple-300 to-orange-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const all3B   = 'bg-gradient-to-r from-teal-400 via-purple-500 to-orange-400';
-    const bothDingW = 'bg-gradient-to-r from-amber-400 to-orange-400';
-    const bothDingB = 'bg-gradient-to-r from-amber-500 to-orange-500';
+    const both13W = 'bg-gradient-to-r from-teal-200 to-rose-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const both13B = 'bg-gradient-to-r from-teal-400 to-rose-400';
+    const both23W = 'bg-gradient-to-r from-purple-300 to-rose-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const both23B = 'bg-gradient-to-r from-purple-500 to-rose-400';
+    const all3W   = 'bg-gradient-to-r from-teal-200 via-purple-300 to-rose-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const all3B   = 'bg-gradient-to-r from-teal-400 via-purple-500 to-rose-400';
+    const bothDingW = 'bg-amber-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const bothDingB = 'bg-amber-500';
 
     const p = match.primary, s = match.secondary, t = match.tertiary;
 

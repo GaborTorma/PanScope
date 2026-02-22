@@ -87,13 +87,22 @@ export const useScaleManager = () => {
     }, [slots.length]);
 
     // --- Minden slothoz kiszámítjuk a szűrt listákat ---
-    const resolvedSlots = useMemo(() =>
-        slots.map(slot => {
+    const resolvedSlots = useMemo(() => {
+        // Első menet: minden slot effektív scaleId-ja
+        const effectiveIds = slots.map(slot => {
             const filtered = filterScales(allScales, slot.filters);
-
-            const effectiveScaleId = filtered.find(s => s.id === slot.scaleId)
+            return filtered.find(s => s.id === slot.scaleId)
                 ? slot.scaleId
                 : filtered[0]?.id || slot.scaleId;
+        });
+
+        return slots.map((slot, slotIndex) => {
+            const filtered = filterScales(allScales, slot.filters);
+            const effectiveScaleId = effectiveIds[slotIndex];
+
+            // Más slotokban már kiválasztott skálák kizárása (de a sajátja marad)
+            const otherIds = new Set(effectiveIds.filter((_, i) => i !== slotIndex));
+            const filteredExclusive = filtered.filter(s => !otherIds.has(s.id) || s.id === effectiveScaleId);
 
             const selectedScale = allScales.find(s => s.id === effectiveScaleId) || null;
             const chords = calculateChords(selectedScale);
@@ -101,7 +110,7 @@ export const useScaleManager = () => {
             return {
                 ...slot,
                 scaleId: effectiveScaleId,
-                filteredScales: filtered,
+                filteredScales: filteredExclusive,
                 availableRoots: getAvailableOptions(allScales, slot.filters, 'root'),
                 availableFamilies: getAvailableOptions(allScales, slot.filters, 'family'),
                 availableCounts: getAvailableOptions(allScales, slot.filters, 'count'),
@@ -109,8 +118,8 @@ export const useScaleManager = () => {
                 selectedScale,
                 chords,
             };
-        }),
-        [slots, allScales]);
+        });
+    }, [slots, allScales]);
 
     const activeScales = resolvedSlots.map(s => s.selectedScale).filter(Boolean);
 

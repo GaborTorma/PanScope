@@ -5,7 +5,7 @@ export default function ChordList({ chords, colorScheme = 'teal', playChord }) {
     const colorMap = {
         teal:   { major: 'text-teal-800',   minor: 'text-teal-600',   majorBtn: 'border-teal-200 text-teal-700 hover:bg-teal-50',   minorBtn: 'border-teal-200 text-teal-600 hover:bg-teal-50' },
         purple: { major: 'text-purple-800', minor: 'text-purple-600', majorBtn: 'border-purple-200 text-purple-700 hover:bg-purple-50', minorBtn: 'border-purple-200 text-purple-600 hover:bg-purple-50' },
-        orange: { major: 'text-orange-800', minor: 'text-orange-600', majorBtn: 'border-orange-200 text-orange-700 hover:bg-orange-50', minorBtn: 'border-orange-200 text-orange-600 hover:bg-orange-50' },
+        rose:   { major: 'text-rose-800',   minor: 'text-rose-600',   majorBtn: 'border-rose-200 text-rose-700 hover:bg-rose-50',   minorBtn: 'border-rose-200 text-rose-600 hover:bg-rose-50' },
     };
     const colors = colorMap[colorScheme] || colorMap.teal;
 

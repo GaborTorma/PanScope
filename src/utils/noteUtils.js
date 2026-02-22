@@ -52,7 +52,7 @@ export const getNoteMatch = (midi, selectedScale, compareScale, tertiaryScale = 
         let isDing = false, isTone = false, matchedName = '', index = null;
 
         for (const name of possibleNames) {
-            if (scale.ding === name) { isDing = true; matchedName = name; index = 'Ding'; break; }
+            if (scale.ding === name) { isDing = true; matchedName = name; index = 'D'; break; }
         }
         if (!isDing) {
             for (const name of possibleNames) {
