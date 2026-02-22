@@ -544,7 +544,7 @@ export default function App() {
       ? `Kérlek hasonlítsd össze ezt a két handpan skálát: 1. ${selectedScale.name} (${selectedScale.notes.join(', ')}) és 2. ${compareScale.name} (${compareScale.notes.join(', ')}). Mi a fő zeneelméleti és hangulati különbség köztük? Kinek melyiket ajánlanád? A válaszod legyen tagolt, használj formázást (vastagítás csillagokkal), írj magyarul, barátságos, szakmai de érthető stílusban. Ne legyen túl hosszú.`
       : `Kérlek adj 3 rövid, kreatív tippet arra, hogyan érdemes játszani egy ${selectedScale.name} (${selectedScale.ding}, ${selectedScale.notes.join(', ')}) handpanen. Milyen ritmusok, technikák vagy érzelmek illenek hozzá a legjobban? A válaszod legyen tagolt, használj formázást (vastagítás csillagokkal), írj magyarul, barátságos, inspiráló stílusban. Ne legyen túl hosszú.`;
 
-    const apiKey = "";
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
     let retries = 5; let delay = 1000;
