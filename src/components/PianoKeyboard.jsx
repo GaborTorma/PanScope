@@ -6,11 +6,11 @@ import { getNoteNames, getNoteMatch } from '../utils/noteUtils';
 export default function PianoKeyboard({
     viewMode = 'merged',
     selectedScale, compareScale,
-    baseFrequency, activeNotes, playNote
+    baseFrequency, activeNotes, playNote,
+    startMidi = 43,
+    endMidi = 83,
 }) {
     const keys = [];
-    const startMidi = 43; // G2
-    const endMidi = 83;   // B5
 
     for (let midi = startMidi; midi <= endMidi; midi++) {
         const noteClass = midi % 12;

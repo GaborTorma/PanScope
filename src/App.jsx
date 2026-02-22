@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { useScaleManager } from './hooks/useScaleManager';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
+import { calculatePianoRange } from './utils/pianoRange';
 
 import Header from './components/Header';
 import ScaleSelector from './components/ScaleSelector';
@@ -32,6 +34,13 @@ export default function App() {
   } = scaleManager;
 
   const { baseFrequency, setBaseFrequency, activeNotes, playNote, playChord } = audio;
+
+  // A zongora tartomány mindig a kiválasztott skála(k)hoz igazodik,
+  // osztott nézetben mindkét zongora AZONOS tartományt kap (unió).
+  const pianoRange = useMemo(() => {
+    const scales = [selectedScale, compareScaleId ? compareScale : null].filter(Boolean);
+    return calculatePianoRange(scales, 2);
+  }, [selectedScale, compareScale, compareScaleId]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8 font-sans pb-24">
@@ -104,19 +113,19 @@ export default function App() {
                   <div className="w-full flex flex-col items-center gap-3">
                     <h4 className="text-sm font-bold text-teal-700 bg-teal-50 px-4 py-1.5 rounded-full border border-teal-200 shadow-sm">1. {selectedScale.name}</h4>
                     <div className="flex justify-start sm:justify-center">
-                      <PianoKeyboard viewMode="primary" selectedScale={selectedScale} compareScale={compareScale} baseFrequency={baseFrequency} activeNotes={activeNotes} playNote={playNote} />
+                      <PianoKeyboard viewMode="primary" selectedScale={selectedScale} compareScale={compareScale} baseFrequency={baseFrequency} activeNotes={activeNotes} playNote={playNote} startMidi={pianoRange.startMidi} endMidi={pianoRange.endMidi} />
                     </div>
                   </div>
                   <div className="w-full flex flex-col items-center gap-3 mt-4">
                     <h4 className="text-sm font-bold text-purple-700 bg-purple-50 px-4 py-1.5 rounded-full border border-purple-200 shadow-sm">2. {compareScale.name}</h4>
                     <div className="flex justify-start sm:justify-center">
-                      <PianoKeyboard viewMode="secondary" selectedScale={selectedScale} compareScale={compareScale} baseFrequency={baseFrequency} activeNotes={activeNotes} playNote={playNote} />
+                      <PianoKeyboard viewMode="secondary" selectedScale={selectedScale} compareScale={compareScale} baseFrequency={baseFrequency} activeNotes={activeNotes} playNote={playNote} startMidi={pianoRange.startMidi} endMidi={pianoRange.endMidi} />
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="flex justify-start sm:justify-center min-w-max px-8 pt-4">
-                  <PianoKeyboard viewMode="merged" selectedScale={selectedScale} compareScale={compareScale} baseFrequency={baseFrequency} activeNotes={activeNotes} playNote={playNote} />
+                  <PianoKeyboard viewMode="merged" selectedScale={selectedScale} compareScale={compareScale} baseFrequency={baseFrequency} activeNotes={activeNotes} playNote={playNote} startMidi={pianoRange.startMidi} endMidi={pianoRange.endMidi} />
                 </div>
               )}
             </div>
