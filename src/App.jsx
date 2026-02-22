@@ -4,147 +4,156 @@ import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { calculatePianoRange } from './utils/pianoRange';
 
 import Header from './components/Header';
-import ScaleSelector from './components/ScaleSelector';
 import Legend from './components/Legend';
 import FrequencyToggle from './components/FrequencyToggle';
 import PianoKeyboard from './components/PianoKeyboard';
-import ScaleInfoCard from './components/ScaleInfoCard';
 import AiChat from './components/AiChat';
+import ScaleSlot from './components/ScaleSlot';
 
-/**
- * App — Kompozíciós réteg
- * Összefogja a hook-okat és a komponenseket, de saját logikája nincs.
- */
+const MAX_SCALES = 3;
+
+const SPLIT_LABEL_STYLES = [
+  'text-teal-700 bg-teal-50 border-teal-200',
+  'text-purple-700 bg-purple-50 border-purple-200',
+  'text-slate-700 bg-slate-100 border-slate-300',
+];
+
 export default function App() {
-  const scaleManager = useScaleManager();
-  const audio = useAudioPlayer();
-
   const {
-    filters1, filters2,
-    handleFilterChange1, handleFilterChange2,
-    handleClearAllFilters, hasActiveFilters,
-    availableRoots1, availableFamilies1, availableCounts1,
-    availableRoots2, availableFamilies2, availableCounts2,
-    filteredScales1, filteredScales2,
-    selectedScale, compareScale,
-    selectedScaleId, compareScaleId,
-    handleScaleChange,
-    splitView, setSplitView,
-    primaryChords, secondaryChords,
-  } = scaleManager;
+    slots, addSlot, removeSlot,
+    updateSlotFilter, updateSlotScale, clearSlotFilters,
+    activeScales, splitView, setSplitView,
+  } = useScaleManager();
 
-  const { baseFrequency, setBaseFrequency, activeNotes, playNote, playChord } = audio;
+  const { baseFrequency, setBaseFrequency, activeNotes, playNote, playChord } = useAudioPlayer();
 
-  // A zongora tartomány mindig a kiválasztott skála(k)hoz igazodik,
-  // osztott nézetben mindkét zongora AZONOS tartományt kap (unió).
-  const pianoRange = useMemo(() => {
-    const scales = [selectedScale, compareScaleId ? compareScale : null].filter(Boolean);
-    return calculatePianoRange(scales, 2);
-  }, [selectedScale, compareScale, compareScaleId]);
+  const pianoRange = useMemo(() => calculatePianoRange(activeScales, 2), [activeScales]);
+
+  const hasCompare = activeScales.length >= 2;
+  const canMerge = activeScales.length <= 2;
+  // 3 skálánál kényszerített osztott, 1-nél nincs split, 2-nél user választ
+  const effectiveSplitView = activeScales.length >= 3 ? true : activeScales.length === 2 ? splitView : false;
+
+  const primaryScale = activeScales[0] || null;
+  const compareScale = activeScales[1] || null;
+
+  // Grid oszlopszám az aktív slotok számától függ
+  const gridCols = slots.length === 1
+    ? 'grid-cols-1'
+    : slots.length === 2
+      ? 'grid-cols-1 sm:grid-cols-2'
+      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8 font-sans pb-24">
       <div className="max-w-7xl mx-auto space-y-6">
 
-        <Header />
-
-        {/* --- Skálaválasztó panel --- */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-200 relative">
-          {hasActiveFilters && (
-            <div className="flex justify-center md:absolute md:-top-4 md:right-6 mb-4 md:mb-0 z-20">
-              <button
-                onClick={handleClearAllFilters}
-                className="text-sm font-bold px-4 py-2 bg-red-500 text-white border-2 border-white rounded-full hover:bg-red-600 hover:scale-105 transition-all shadow-md flex items-center gap-2"
-              >
-                <span>✖</span> Összes szűrő törlése
-              </button>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto md:pt-4">
-            <ScaleSelector
-              label="1. Skála (Fő skála):"
-              colorScheme="teal"
-              selectedId={selectedScaleId}
-              onScaleChange={handleScaleChange}
-              filteredScales={filteredScales1}
-              filters={filters1}
-              onFilterChange={handleFilterChange1}
-              availableRoots={availableRoots1}
-              availableFamilies={availableFamilies1}
-              availableCounts={availableCounts1}
-            />
-            <ScaleSelector
-              label="2. Skála (Összehasonlítás):"
-              colorScheme="purple"
-              selectedId={compareScaleId}
-              onScaleChange={handleScaleChange}
-              filteredScales={filteredScales2}
-              filters={filters2}
-              onFilterChange={handleFilterChange2}
-              availableRoots={availableRoots2}
-              availableFamilies={availableFamilies2}
-              availableCounts={availableCounts2}
-              isCompare
-            />
+        {/* Header + 432/440 toggle jobb felső sarokban */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <Header />
           </div>
-
-          <Legend hasCompare={!!compareScaleId} />
+          <div className="bg-slate-100 p-1 rounded-lg inline-flex shadow-inner flex-shrink-0 mt-1">
+            <button
+              className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${baseFrequency === 432 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => setBaseFrequency(432)}
+            >432 Hz</button>
+            <button
+              className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${baseFrequency === 440 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => setBaseFrequency(440)}
+            >440 Hz</button>
+          </div>
         </div>
 
-        {/* --- Zongora nézet --- */}
-        {selectedScale && (
+        {/* --- Skála slotok --- */}
+        <div className="space-y-6">
+          <div className={`grid ${gridCols} gap-4`}>
+            {slots.map((slot, index) => (
+              <ScaleSlot
+                key={slot.id}
+                slot={slot}
+                index={index}
+                totalCount={slots.length}
+                onFilterChange={updateSlotFilter}
+                onScaleChange={updateSlotScale}
+                onRemove={removeSlot}
+                onClearFilters={clearSlotFilters}
+                playChord={playChord}
+              />
+            ))}
+          </div>
+
+          {primaryScale && <Legend hasCompare={hasCompare} />}
+        </div>
+
+        {/* --- Zongora --- */}
+        {primaryScale && (
           <div className="bg-white py-8 rounded-2xl shadow-lg border border-slate-200 overflow-hidden relative">
             <p className="absolute top-2 left-4 text-[10px] text-slate-400 font-medium">
               * A billentyűkön látható számok a {baseFrequency} Hz-es A4 alaphanghoz viszonyított frekvenciák.
             </p>
 
             <FrequencyToggle
-              baseFrequency={baseFrequency}
-              setBaseFrequency={setBaseFrequency}
-              hasCompare={!!compareScaleId}
-              splitView={splitView}
+              canMerge={canMerge}
+              activeCount={activeScales.length}
+              splitView={effectiveSplitView}
               setSplitView={setSplitView}
             />
 
             <div className="w-full overflow-x-auto pb-4 pt-2 custom-scrollbar">
-              {splitView && compareScaleId ? (
+              {effectiveSplitView ? (
                 <div className="flex flex-col gap-6 min-w-max px-8 pt-4 pb-2 items-start sm:items-center">
-                  <div className="w-full flex flex-col items-center gap-3">
-                    <h4 className="text-sm font-bold text-teal-700 bg-teal-50 px-4 py-1.5 rounded-full border border-teal-200 shadow-sm">1. {selectedScale.name}</h4>
-                    <div className="flex justify-start sm:justify-center">
-                      <PianoKeyboard viewMode="primary" selectedScale={selectedScale} compareScale={compareScale} baseFrequency={baseFrequency} activeNotes={activeNotes} playNote={playNote} startMidi={pianoRange.startMidi} endMidi={pianoRange.endMidi} />
+                  {activeScales.map((scale, i) => (
+                    <div key={`piano-${i}`} className="w-full flex flex-col items-center gap-3">
+                      <h4 className={`text-sm font-bold px-4 py-1.5 rounded-full border shadow-sm ${SPLIT_LABEL_STYLES[i] || SPLIT_LABEL_STYLES[2]}`}>
+                        {i + 1}. {scale.name}
+                      </h4>
+                      <div className="flex justify-start sm:justify-center">
+                        <PianoKeyboard
+                          viewMode="primary"
+                          selectedScale={scale}
+                          compareScale={null}
+                          baseFrequency={baseFrequency}
+                          activeNotes={activeNotes}
+                          playNote={playNote}
+                          startMidi={pianoRange.startMidi}
+                          endMidi={pianoRange.endMidi}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="w-full flex flex-col items-center gap-3 mt-4">
-                    <h4 className="text-sm font-bold text-purple-700 bg-purple-50 px-4 py-1.5 rounded-full border border-purple-200 shadow-sm">2. {compareScale.name}</h4>
-                    <div className="flex justify-start sm:justify-center">
-                      <PianoKeyboard viewMode="secondary" selectedScale={selectedScale} compareScale={compareScale} baseFrequency={baseFrequency} activeNotes={activeNotes} playNote={playNote} startMidi={pianoRange.startMidi} endMidi={pianoRange.endMidi} />
-                    </div>
-                  </div>
+                  ))}
                 </div>
               ) : (
                 <div className="flex justify-start sm:justify-center min-w-max px-8 pt-4">
-                  <PianoKeyboard viewMode="merged" selectedScale={selectedScale} compareScale={compareScale} baseFrequency={baseFrequency} activeNotes={activeNotes} playNote={playNote} startMidi={pianoRange.startMidi} endMidi={pianoRange.endMidi} />
+                  <PianoKeyboard
+                    viewMode="merged"
+                    selectedScale={primaryScale}
+                    compareScale={compareScale}
+                    baseFrequency={baseFrequency}
+                    activeNotes={activeNotes}
+                    playNote={playNote}
+                    startMidi={pianoRange.startMidi}
+                    endMidi={pianoRange.endMidi}
+                  />
                 </div>
               )}
             </div>
           </div>
         )}
-
-        {/* --- Infó kártyák --- */}
-        {selectedScale && (
-          <div className={`grid grid-cols-1 ${compareScale ? 'md:grid-cols-2' : 'max-w-2xl mx-auto'} gap-6`}>
-            <ScaleInfoCard scale={selectedScale} chords={primaryChords} variant="primary" playChord={playChord} />
-            {compareScale && (
-              <ScaleInfoCard scale={compareScale} chords={secondaryChords} variant="secondary" playChord={playChord} />
-            )}
-          </div>
-        )}
       </div>
 
-      {/* --- AI Chat --- */}
-      <AiChat selectedScale={selectedScale} compareScale={compareScale} />
+      {/* Floating "+" gomb — jobb alsó sarok, fix pozíció */}
+      {slots.length < MAX_SCALES && (
+        <button
+          onClick={addSlot}
+          className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-teal-500 text-white rounded-full shadow-lg flex items-center justify-center text-3xl font-light hover:bg-teal-600 hover:shadow-xl hover:scale-110 active:scale-95 transition-all"
+          aria-label="Új skála hozzáadása"
+          title="Új skála hozzáadása"
+        >+</button>
+      )}
+
+      {/* AI Chat */}
+      <AiChat selectedScale={primaryScale} compareScale={compareScale} />
     </div>
   );
 }
