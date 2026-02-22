@@ -119,7 +119,7 @@ export default function ScaleSlot({ slot, index, totalCount, onFilterChange, onS
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Hangok</p>
                         <div className="flex flex-col gap-1.5">
                             <span className={`inline-flex self-start px-3 py-1.5 ${c.dingBg} border rounded-lg text-xs font-bold shadow-sm`}>
-                                ♦ Ding — {scale.ding}
+                                Ding — {scale.ding}
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                                 {scale.notes.map((note, i) => (
@@ -131,16 +131,16 @@ export default function ScaleSlot({ slot, index, totalCount, onFilterChange, onS
                         </div>
                     </div>
 
-                    {/* Akkordok */}
-                    <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Akkordok</p>
-                        <ChordList chords={slot.chords} colorScheme={c.chordScheme} playChord={playChord} />
-                    </div>
-
                     {/* Jellemzés */}
                     <div className="pt-1 border-t border-slate-100">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Jellemzés</p>
                         <p className="text-xs text-slate-600 leading-relaxed">{scale.description}</p>
+                    </div>
+
+                    {/* Akkordok */}
+                    <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Akkordok</p>
+                        <ChordList chords={slot.chords} colorScheme={c.chordScheme} playChord={playChord} />
                     </div>
                 </div>
             )}

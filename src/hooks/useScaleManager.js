@@ -81,9 +81,9 @@ export const useScaleManager = () => {
         ));
     }, []);
 
-    // Osztott nézet automatikusan kikapcsol, ha nem pontosan 2 slot van
+    // Osztott nézet kikapcsol, ha csak 1 slot van
     useEffect(() => {
-        if (slots.length !== 2) setSplitView(false);
+        if (slots.length <= 1) setSplitView(false);
     }, [slots.length]);
 
     // --- Minden slothoz kiszámítjuk a szűrt listákat ---

@@ -42,7 +42,7 @@ export const noteNameToMidi = (noteName) => {
 /**
  * MIDI szám → melyik skálában van (ding/tone/nem tartozik bele)
  */
-export const getNoteMatch = (midi, selectedScale, compareScale) => {
+export const getNoteMatch = (midi, selectedScale, compareScale, tertiaryScale = null) => {
     const noteClass = midi % 12;
     const octave = Math.floor(midi / 12) - 1;
     const possibleNames = getNoteNames(noteClass).map(n => `${n}${octave}`);
@@ -63,5 +63,9 @@ export const getNoteMatch = (midi, selectedScale, compareScale) => {
         return { isDing, isTone, matchedName, isActive: isDing || isTone, index };
     };
 
-    return { primary: checkScale(selectedScale), secondary: checkScale(compareScale) };
+    return {
+        primary: checkScale(selectedScale),
+        secondary: checkScale(compareScale),
+        tertiary: checkScale(tertiaryScale),
+    };
 };

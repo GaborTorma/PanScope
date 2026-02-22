@@ -18,6 +18,9 @@ const SPLIT_LABEL_STYLES = [
   'text-orange-700 bg-orange-50 border-orange-200',
 ];
 
+// Split nézetben melyik viewMode tartozik az i-edik skálához
+const SPLIT_VIEW_MODES = ['primary', 'secondary', 'tertiary'];
+
 export default function App() {
   const {
     slots, addSlot, removeSlot,
@@ -30,12 +33,12 @@ export default function App() {
   const pianoRange = useMemo(() => calculatePianoRange(activeScales, 2), [activeScales]);
 
   const hasCompare = activeScales.length >= 2;
-  const canMerge = activeScales.length <= 2;
-  // 3 skálánál kényszerített osztott, 1-nél nincs split, 2-nél user választ
-  const effectiveSplitView = activeScales.length >= 3 ? true : activeScales.length === 2 ? splitView : false;
+  // 1 skálánál nincs split, 2–3-nál user választ
+  const effectiveSplitView = activeScales.length <= 1 ? false : splitView;
 
-  const primaryScale = activeScales[0] || null;
-  const compareScale = activeScales[1] || null;
+  const primaryScale   = activeScales[0] || null;
+  const compareScale   = activeScales[1] || null;
+  const tertiaryScale  = activeScales[2] || null;
 
   // Grid oszlopszám az aktív slotok számától függ
   const gridCols = slots.length === 1
@@ -48,22 +51,8 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8 font-sans pb-24">
       <div className="max-w-7xl mx-auto space-y-6">
 
-        {/* Header + 432/440 toggle jobb felső sarokban */}
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <Header />
-          </div>
-          <div className="bg-slate-100 p-1 rounded-lg inline-flex shadow-inner flex-shrink-0 mt-1">
-            <button
-              className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${baseFrequency === 432 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => setBaseFrequency(432)}
-            >432 Hz</button>
-            <button
-              className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${baseFrequency === 440 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => setBaseFrequency(440)}
-            >440 Hz</button>
-          </div>
-        </div>
+        {/* Header */}
+        <Header />
 
         {/* --- Skála slotok --- */}
         <div className="space-y-6">
@@ -93,8 +82,19 @@ export default function App() {
               * A billentyűkön látható számok a {baseFrequency} Hz-es A4 alaphanghoz viszonyított frekvenciák.
             </p>
 
+            {/* 432 / 440 Hz — jobb felső sarok */}
+            <div className="absolute top-2 right-4 bg-slate-100 p-1 rounded-lg inline-flex shadow-inner">
+              <button
+                className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${baseFrequency === 432 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setBaseFrequency(432)}
+              >432 Hz</button>
+              <button
+                className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${baseFrequency === 440 ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setBaseFrequency(440)}
+              >440 Hz</button>
+            </div>
+
             <FrequencyToggle
-              canMerge={canMerge}
               activeCount={activeScales.length}
               splitView={effectiveSplitView}
               setSplitView={setSplitView}
@@ -103,25 +103,33 @@ export default function App() {
             <div className="w-full overflow-x-auto pb-4 pt-2 custom-scrollbar">
               {effectiveSplitView ? (
                 <div className="flex flex-col gap-6 min-w-max px-8 pt-4 pb-2 items-start sm:items-center">
-                  {activeScales.map((scale, i) => (
-                    <div key={`piano-${i}`} className="w-full flex flex-col items-center gap-3">
-                      <h4 className={`text-sm font-bold px-4 py-1.5 rounded-full border shadow-sm ${SPLIT_LABEL_STYLES[i] || SPLIT_LABEL_STYLES[2]}`}>
-                        {i + 1}. {scale.name}
-                      </h4>
-                      <div className="flex justify-start sm:justify-center">
-                        <PianoKeyboard
-                          viewMode="primary"
-                          selectedScale={scale}
-                          compareScale={null}
-                          baseFrequency={baseFrequency}
-                          activeNotes={activeNotes}
-                          playNote={playNote}
-                          startMidi={pianoRange.startMidi}
-                          endMidi={pianoRange.endMidi}
-                        />
+                  {activeScales.map((scale, i) => {
+                    // Minden skálának a saját viewMode-ja és a skála a megfelelő prop-ban
+                    const vm = SPLIT_VIEW_MODES[i] || 'primary';
+                    const selScale   = i === 0 ? scale : null;
+                    const cmpScale   = i === 1 ? scale : null;
+                    const tertScale  = i === 2 ? scale : null;
+                    return (
+                      <div key={`piano-${i}`} className="w-full flex flex-col items-center gap-3">
+                        <h4 className={`text-sm font-bold px-4 py-1.5 rounded-full border shadow-sm ${SPLIT_LABEL_STYLES[i] || SPLIT_LABEL_STYLES[2]}`}>
+                          {i + 1}. {scale.name}
+                        </h4>
+                        <div className="flex justify-start sm:justify-center">
+                          <PianoKeyboard
+                            viewMode={vm}
+                            selectedScale={selScale}
+                            compareScale={cmpScale}
+                            tertiaryScale={tertScale}
+                            baseFrequency={baseFrequency}
+                            activeNotes={activeNotes}
+                            playNote={playNote}
+                            startMidi={pianoRange.startMidi}
+                            endMidi={pianoRange.endMidi}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="flex justify-start sm:justify-center min-w-max px-8 pt-4">
@@ -129,6 +137,7 @@ export default function App() {
                     viewMode="merged"
                     selectedScale={primaryScale}
                     compareScale={compareScale}
+                    tertiaryScale={tertiaryScale}
                     baseFrequency={baseFrequency}
                     activeNotes={activeNotes}
                     playNote={playNote}

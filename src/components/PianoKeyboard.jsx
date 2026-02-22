@@ -5,7 +5,7 @@ import { getNoteNames, getNoteMatch } from '../utils/noteUtils';
  */
 export default function PianoKeyboard({
     viewMode = 'merged',
-    selectedScale, compareScale,
+    selectedScale, compareScale, tertiaryScale = null,
     baseFrequency, activeNotes, playNote,
     startMidi = 43,
     endMidi = 83,
@@ -21,7 +21,7 @@ export default function PianoKeyboard({
 
         if (!isBlack) {
             const defaultName = `${getNoteNames(noteClass)[0]}${Math.floor(midi / 12) - 1}`;
-            const match = getNoteMatch(midi, selectedScale, compareScale);
+            const match = getNoteMatch(midi, selectedScale, compareScale, tertiaryScale);
             const isWhitePressed = activeNotes[midi];
 
             const hasNextBlack = [0, 2, 5, 7, 9].includes(noteClass);
@@ -29,16 +29,14 @@ export default function PianoKeyboard({
             let blackMatch = null, blackDefaultName = '', isBlackPressed = false, nextFreqStr = '';
 
             if (hasNextBlack && nextMidi <= endMidi) {
-                blackMatch = getNoteMatch(nextMidi, selectedScale, compareScale);
+                blackMatch = getNoteMatch(nextMidi, selectedScale, compareScale, tertiaryScale);
                 blackDefaultName = `${getNoteNames(nextMidi % 12)[0]}${Math.floor(nextMidi / 12) - 1}`;
                 isBlackPressed = activeNotes[nextMidi];
                 const nextFreq = baseFrequency * Math.pow(2, (nextMidi - 69) / 12);
                 nextFreqStr = (Math.round(nextFreq * 10) / 10).toFixed(1);
             }
 
-            // Fehér billentyű szín és adatok meghatározása
             const whiteKey = resolveKeyDisplay(match, viewMode, defaultName);
-            // Fekete billentyű szín és adatok meghatározása
             const blackKey = blackMatch ? resolveKeyDisplay(blackMatch, viewMode, blackDefaultName, true) : null;
 
             keys.push(
@@ -92,56 +90,91 @@ export default function PianoKeyboard({
 function resolveKeyDisplay(match, viewMode, defaultName, isBlack = false) {
     let bgClass, displayName = defaultName, isActive = false, displayIndex = null;
 
-    // Alapértelmezett színek
     if (isBlack) {
         bgClass = 'bg-slate-900 hover:bg-slate-800';
     } else {
         bgClass = 'bg-white hover:bg-slate-100';
     }
 
-    const dingWhite = 'bg-amber-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const dingBlack = 'bg-amber-500';
-    const dingWhite2 = 'bg-orange-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const dingBlack2 = 'bg-orange-500';
+    // Skála 1 — türkiz
+    const dingW  = 'bg-amber-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const dingB  = 'bg-amber-500';
+    const tone1W = 'bg-teal-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const tone1B = 'bg-teal-500';
+
+    // Skála 2 — lila
+    const ding2W = 'bg-orange-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const ding2B = 'bg-orange-500';
+    const tone2W = 'bg-purple-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const tone2B = 'bg-purple-500';
+
+    // Skála 3 — narancs
+    const tone3W = 'bg-orange-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const tone3B = 'bg-orange-400';
+
+    // Közös hangok (merged nézet) — a két érintett skála színéből keverve
+    const both12W = 'bg-gradient-to-r from-teal-200 to-purple-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const both12B = 'bg-gradient-to-r from-teal-400 to-purple-500';
+    const both13W = 'bg-gradient-to-r from-teal-200 to-orange-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const both13B = 'bg-gradient-to-r from-teal-400 to-orange-400';
+    const both23W = 'bg-gradient-to-r from-purple-300 to-orange-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const both23B = 'bg-gradient-to-r from-purple-500 to-orange-400';
+    const all3W   = 'bg-gradient-to-r from-teal-200 via-purple-300 to-orange-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
+    const all3B   = 'bg-gradient-to-r from-teal-400 via-purple-500 to-orange-400';
     const bothDingW = 'bg-gradient-to-r from-amber-400 to-orange-400';
     const bothDingB = 'bg-gradient-to-r from-amber-500 to-orange-500';
-    const toneWhite = 'bg-teal-200 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const toneBlack = 'bg-teal-500';
-    const toneWhite2 = 'bg-purple-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const toneBlack2 = 'bg-purple-500';
-    const bothToneW = 'bg-indigo-300 shadow-[inset_0_0_15px_rgba(0,0,0,0.1)]';
-    const bothToneB = 'bg-indigo-500';
+
+    const p = match.primary, s = match.secondary, t = match.tertiary;
 
     if (viewMode === 'merged') {
-        if (match.primary.isDing && match.secondary.isDing) bgClass = isBlack ? bothDingB : bothDingW;
-        else if (match.primary.isDing) bgClass = isBlack ? dingBlack : dingWhite;
-        else if (match.secondary.isDing) bgClass = isBlack ? dingBlack2 : dingWhite2;
-        else if (match.primary.isTone && match.secondary.isTone) bgClass = isBlack ? bothToneB : bothToneW;
-        else if (match.primary.isTone) bgClass = isBlack ? toneBlack : toneWhite;
-        else if (match.secondary.isTone) bgClass = isBlack ? toneBlack2 : toneWhite2;
+        // Ding elsőbbség — ha bármelyik skálában Ding
+        const anyDing = p.isDing || s.isDing || t.isDing;
+        if (anyDing) {
+            bgClass = isBlack ? bothDingB : bothDingW;
+        }
+        // 3-skálás hangkombinációk
+        else if (p.isTone && s.isTone && t.isTone) bgClass = isBlack ? all3B   : all3W;
+        else if (p.isTone && t.isTone)             bgClass = isBlack ? both13B  : both13W;
+        else if (s.isTone && t.isTone)             bgClass = isBlack ? both23B  : both23W;
+        else if (p.isTone && s.isTone)             bgClass = isBlack ? both12B  : both12W;
+        else if (t.isTone)                         bgClass = isBlack ? tone3B   : tone3W;
+        else if (p.isTone)                         bgClass = isBlack ? tone1B   : tone1W;
+        else if (s.isTone)                         bgClass = isBlack ? tone2B   : tone2W;
 
-        isActive = match.primary.isActive || match.secondary.isActive;
-        if (match.primary.isActive) displayName = match.primary.matchedName;
-        else if (match.secondary.isActive) displayName = match.secondary.matchedName;
+        isActive = p.isActive || s.isActive || t.isActive;
+        if (p.isActive)      displayName = p.matchedName;
+        else if (s.isActive) displayName = s.matchedName;
+        else if (t.isActive) displayName = t.matchedName;
 
-        if (match.primary.isActive && match.secondary.isActive) {
-            displayIndex = match.primary.index === match.secondary.index ? match.primary.index : `${match.primary.index}${isBlack ? '|' : ' | '}${match.secondary.index}`;
-        } else if (match.primary.isActive) displayIndex = match.primary.index;
-        else if (match.secondary.isActive) displayIndex = match.secondary.index;
+        const indices = [
+            p.isActive ? p.index : null,
+            s.isActive ? s.index : null,
+            t.isActive ? t.index : null,
+        ].filter(v => v !== null);
+        const unique = [...new Set(indices)];
+        if (unique.length === 1)      displayIndex = unique[0];
+        else if (unique.length > 1)   displayIndex = unique.join(isBlack ? '|' : '/');
 
     } else if (viewMode === 'primary') {
-        if (match.primary.isDing) bgClass = isBlack ? dingBlack : dingWhite;
-        else if (match.primary.isTone) bgClass = isBlack ? toneBlack : toneWhite;
-        isActive = match.primary.isActive;
-        if (isActive) displayName = match.primary.matchedName;
-        displayIndex = match.primary.index;
+        if (p.isDing)      bgClass = isBlack ? dingB  : dingW;
+        else if (p.isTone) bgClass = isBlack ? tone1B : tone1W;
+        isActive = p.isActive;
+        if (isActive) displayName = p.matchedName;
+        displayIndex = p.index;
 
     } else if (viewMode === 'secondary') {
-        if (match.secondary.isDing) bgClass = isBlack ? dingBlack2 : dingWhite2;
-        else if (match.secondary.isTone) bgClass = isBlack ? toneBlack2 : toneWhite2;
-        isActive = match.secondary.isActive;
-        if (isActive) displayName = match.secondary.matchedName;
-        displayIndex = match.secondary.index;
+        if (s.isDing)      bgClass = isBlack ? ding2B  : ding2W;
+        else if (s.isTone) bgClass = isBlack ? tone2B  : tone2W;
+        isActive = s.isActive;
+        if (isActive) displayName = s.matchedName;
+        displayIndex = s.index;
+
+    } else if (viewMode === 'tertiary') {
+        if (t.isDing)      bgClass = isBlack ? dingB  : dingW;
+        else if (t.isTone) bgClass = isBlack ? tone3B : tone3W;
+        isActive = t.isActive;
+        if (isActive) displayName = t.matchedName;
+        displayIndex = t.index;
     }
 
     return { bgClass, displayName, isActive, displayIndex };

@@ -1,11 +1,8 @@
 /**
- * Nézetváltó: Egyesített / Osztott
- * Csak pontosan 2 skálánál jelenik meg (ilyenkor van miből választani).
- * 1 skálánál nincs értelme, 3-nál kényszerített osztott.
+ * Nézetváltó: Egyesített / Osztott — 2+ skálánál jelenik meg
  */
-export default function FrequencyToggle({ canMerge, activeCount, splitView, setSplitView }) {
-    // Csak akkor jelenjen meg, ha van miből választani (pontosan 2 skála)
-    if (activeCount !== 2) return null;
+export default function FrequencyToggle({ activeCount, splitView, setSplitView }) {
+    if (activeCount < 2) return null;
 
     return (
         <div className="flex justify-center items-center mb-6 mt-2">
