@@ -1,27 +1,57 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { SCALES } from '../data/scales';
+import { fetchScales } from '../services/scaleService';
 import { filterScales, getAvailableOptions } from '../utils/scaleFilters';
 import { calculateChords } from '../utils/chordCalculator';
 
 let nextId = 1;
-const makeSlot = (scaleId) => ({
-    id: `slot-${nextId++}`,
-    scaleId: scaleId || SCALES[0].id,
-    filters: { root: '', family: '', count: '' },
-});
 
 /**
  * Custom hook a dinamikus, többszörös skálaslot kezelésére.
- * Minden slot saját szűrőkkel, kiválasztott skálával és akkordokkal rendelkezik.
+ * A skálákat Supabase-ből tölti, fallback a lokális SCALES tömbre.
  */
 export const useScaleManager = () => {
-    const [slots, setSlots] = useState([makeSlot()]);
+    const [allScales, setAllScales] = useState(SCALES); // azonnal fallback-kel indul
+    const [isLoading, setIsLoading] = useState(true);
+    const [dataSource, setDataSource] = useState('local'); // 'local' | 'supabase'
+
+    // Async betöltés indításkor
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const scales = await fetchScales();
+                if (!cancelled && scales?.length > 0) {
+                    setAllScales(scales);
+                    // Ha a Supabase client nem null → 'supabase', különben 'local'
+                    setDataSource(scales !== SCALES ? 'supabase' : 'local');
+                }
+            } catch {
+                // Fallback marad
+            } finally {
+                if (!cancelled) setIsLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    const makeSlot = useCallback((scaleId) => ({
+        id: `slot-${nextId++}`,
+        scaleId: scaleId || allScales[0]?.id || '',
+        filters: { root: '', family: '', count: '' },
+    }), [allScales]);
+
+    const [slots, setSlots] = useState(() => [{
+        id: `slot-${nextId++}`,
+        scaleId: SCALES[0]?.id || '',
+        filters: { root: '', family: '', count: '' },
+    }]);
     const [splitView, setSplitView] = useState(false);
 
     // --- Slot CRUD ---
     const addSlot = useCallback(() => {
         setSlots(prev => [...prev, makeSlot()]);
-    }, []);
+    }, [makeSlot]);
 
     const removeSlot = useCallback((id) => {
         setSlots(prev => prev.length > 1 ? prev.filter(s => s.id !== id) : prev);
@@ -31,14 +61,13 @@ export const useScaleManager = () => {
         setSlots(prev => prev.map(slot => {
             if (slot.id !== id) return slot;
             const nextFilters = { ...slot.filters, [key]: value };
-            const valid = filterScales(SCALES, nextFilters);
-            // Ha az új szűrő kiüresítené a listát, csak az adott szűrőt állítjuk, a többit reseteljük
+            const valid = filterScales(allScales, nextFilters);
             if (valid.length === 0) {
                 return { ...slot, filters: { root: '', family: '', count: '', [key]: value } };
             }
             return { ...slot, filters: nextFilters };
         }));
-    }, []);
+    }, [allScales]);
 
     const updateSlotScale = useCallback((id, scaleId) => {
         setSlots(prev => prev.map(slot =>
@@ -57,34 +86,32 @@ export const useScaleManager = () => {
         if (slots.length !== 2) setSplitView(false);
     }, [slots.length]);
 
-    // --- Minden slothoz kiszámítjuk a szűrt listákat és a kiválasztott skálát ---
+    // --- Minden slothoz kiszámítjuk a szűrt listákat ---
     const resolvedSlots = useMemo(() =>
         slots.map(slot => {
-            const filtered = filterScales(SCALES, slot.filters);
+            const filtered = filterScales(allScales, slot.filters);
 
-            // Ha a jelenlegi scaleId nincs benne a szűrt listában → első elemre ugrunk
             const effectiveScaleId = filtered.find(s => s.id === slot.scaleId)
                 ? slot.scaleId
                 : filtered[0]?.id || slot.scaleId;
 
-            const selectedScale = SCALES.find(s => s.id === effectiveScaleId) || null;
+            const selectedScale = allScales.find(s => s.id === effectiveScaleId) || null;
             const chords = calculateChords(selectedScale);
 
             return {
                 ...slot,
                 scaleId: effectiveScaleId,
                 filteredScales: filtered,
-                availableRoots: getAvailableOptions(SCALES, slot.filters, 'root'),
-                availableFamilies: getAvailableOptions(SCALES, slot.filters, 'family'),
-                availableCounts: getAvailableOptions(SCALES, slot.filters, 'count'),
+                availableRoots: getAvailableOptions(allScales, slot.filters, 'root'),
+                availableFamilies: getAvailableOptions(allScales, slot.filters, 'family'),
+                availableCounts: getAvailableOptions(allScales, slot.filters, 'count'),
                 hasActiveFilters: Object.values(slot.filters).some(v => v !== ''),
                 selectedScale,
                 chords,
             };
         }),
-        [slots]);
+        [slots, allScales]);
 
-    // Az összes aktív skála (a zongora és az AI számára)
     const activeScales = resolvedSlots.map(s => s.selectedScale).filter(Boolean);
 
     return {
@@ -97,6 +124,7 @@ export const useScaleManager = () => {
         activeScales,
         splitView,
         setSplitView,
-        canSplit: slots.length === 2,
+        isLoading,
+        dataSource,
     };
 };
