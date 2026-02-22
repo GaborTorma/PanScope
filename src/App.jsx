@@ -31,8 +31,8 @@ export default function App() {
 
   const effectiveSplitView = activeScales.length <= 1 ? false : splitView;
 
-  const primaryScale  = activeScales[0] || null;
-  const compareScale  = activeScales[1] || null;
+  const primaryScale = activeScales[0] || null;
+  const compareScale = activeScales[1] || null;
   const tertiaryScale = activeScales[2] || null;
 
   const gridCols = slots.length === 1
@@ -43,7 +43,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8 font-sans pb-24">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <main className="max-w-7xl mx-auto space-y-6">
 
         <Header />
 
@@ -100,8 +100,8 @@ export default function App() {
                 <div className="flex flex-col gap-6 min-w-max px-8 pt-4 pb-2 items-start sm:items-center">
                   {activeScales.map((scale, i) => {
                     const vm = SPLIT_VIEW_MODES[i] || 'primary';
-                    const selScale  = i === 0 ? scale : null;
-                    const cmpScale  = i === 1 ? scale : null;
+                    const selScale = i === 0 ? scale : null;
+                    const cmpScale = i === 1 ? scale : null;
                     const tertScale = i === 2 ? scale : null;
                     return (
                       <div key={`piano-${i}`} className="w-full flex flex-col items-center gap-3">
@@ -143,7 +143,7 @@ export default function App() {
             </div>
           </div>
         )}
-      </div>
+      </main>
 
       {slots.length < MAX_SCALES && (
         <button
