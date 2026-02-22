@@ -1,4 +1,4 @@
-# 🎵 Handpan Skála Vizualizáló
+# 🎵 PanScope — Handpan Skála Vizualizáló
 
 Interaktív webalkalmazás handpan skálák felfedezéséhez — zongora vizualizáció, akkordszámítás, skála-összehasonlítás és AI zenei tippek.
 

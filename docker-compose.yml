@@ -1,5 +1,5 @@
 services:
-  handpan-app:
+  panscope:
     build: .
     ports:
       - "8080:80"
